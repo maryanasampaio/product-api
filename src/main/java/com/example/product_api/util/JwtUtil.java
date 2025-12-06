@@ -1,0 +1,117 @@
+package com.example.product_api.util;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+/**
+ * Utilitário para geração e validação de tokens JWT
+ * Access Token: 15 minutos
+ * Refresh Token: 7 dias
+ */
+@Component
+public class JwtUtil {
+
+    @Value("${app.jwt.secret}")
+    private String secret;
+
+    @Value("${app.jwt.expiration-ms}")
+    private Long accessTokenExpiration; // 15 minutos
+
+    @Value("${app.jwt.refresh-expiration-ms}")
+    private Long refreshTokenExpiration; // 7 dias
+
+    private SecretKey getSigningKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    // Gera Access Token (curta duração)
+    public String generateAccessToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "access");
+        return createToken(claims, username, accessTokenExpiration);
+    }
+
+    // Gera Refresh Token (longa duração)
+    public String generateRefreshToken(String username) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", "refresh");
+        return createToken(claims, username, refreshTokenExpiration);
+    }
+
+    // Cria o token JWT
+    private String createToken(Map<String, Object> claims, String subject, Long expiration) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + expiration);
+
+        return Jwts.builder()
+                .claims(claims)
+                .subject(subject)
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    // Extrai username do token
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
+    }
+
+    // Extrai data de expiração
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
+    }
+
+    // Extrai tipo do token (access ou refresh)
+    public String extractTokenType(String token) {
+        return extractClaim(token, claims -> claims.get("type", String.class));
+    }
+
+    // Extrai claim específico
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+
+    // Extrai todos os claims
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    // Verifica se o token expirou
+    private Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    // Valida o token
+    public Boolean validateToken(String token, String username) {
+        final String extractedUsername = extractUsername(token);
+        return (extractedUsername.equals(username) && !isTokenExpired(token));
+    }
+
+    // Valida se é um refresh token
+    public Boolean isRefreshToken(String token) {
+        String type = extractTokenType(token);
+        return "refresh".equals(type);
+    }
+
+    // Valida se é um access token
+    public Boolean isAccessToken(String token) {
+        String type = extractTokenType(token);
+        return "access".equals(type);
+    }
+}
