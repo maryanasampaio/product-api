@@ -1,8 +1,11 @@
 package com.example.product_api.controller;
 
-import com.example.product_api.dto.LoginDTO;
+import com.example.product_api.dto.LoginRequestDTO;
+import com.example.product_api.dto.LoginRequestDTO.LoginResponseDTO;
 import com.example.product_api.dto.RefreshTokenDTO;
 import com.example.product_api.service.AuthService;
+
+import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,8 +36,7 @@ public class AuthController {
      * POST /auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
-
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginDTO) {
         // Valida credenciais
         boolean authenticated = authService.validateCredentials(
             loginDTO.getUsername(), 
@@ -42,19 +44,21 @@ public class AuthController {
         );
 
         if (!authenticated) {
-            return ResponseEntity.status(401).body("Credenciais inválidas");
+            return ResponseEntity.status(401).body(
+                new LoginRequestDTO.LoginResponseDTO(null, null, "Credenciais inválidas")
+            );
         }
 
         // Gera access token e refresh token
         String[] tokens = authService.generateTokens(loginDTO.getUsername());
         String accessToken = tokens[0];
+        String refreshToken = tokens[1];
 
-        // Monta resposta simples
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Login efetuado com sucesso");
-        response.put("username", loginDTO.getUsername());
-        response.put("token", accessToken);
-
+        LoginRequestDTO.LoginResponseDTO response = new LoginRequestDTO.LoginResponseDTO(
+            accessToken,
+            refreshToken,
+            "Login efetuado com sucesso"
+        );
         return ResponseEntity.ok(response);
     }
 
