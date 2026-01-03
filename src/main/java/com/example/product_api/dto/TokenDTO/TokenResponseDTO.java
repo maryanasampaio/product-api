@@ -1,4 +1,4 @@
-package com.example.product_api.dto;
+package com.example.product_api.dto.TokenDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

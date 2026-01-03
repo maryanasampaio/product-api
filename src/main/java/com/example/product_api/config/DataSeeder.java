@@ -1,12 +1,15 @@
 package com.example.product_api.config;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.example.product_api.model.User;
+import com.example.product_api.model.Product;
 import com.example.product_api.repository.UserRepository;
+import com.example.product_api.repository.ProductRepository;
 
 import java.time.Instant;
 
@@ -15,6 +18,7 @@ import java.time.Instant;
  * Popula o banco com dados iniciais quando a aplicação inicia
  */
 @Configuration
+@ConditionalOnProperty(value = "app.seed.enabled", havingValue = "true", matchIfMissing = true)
 public class DataSeeder {
 
     @Bean
@@ -37,6 +41,27 @@ public class DataSeeder {
                 System.out.println("   Password: 123456");
             } else {
                 System.out.println("ℹ️  Usuário admin já existe no banco de dados");
+            }
+        };
+    }
+
+    @Bean
+    CommandLineRunner initProducts(ProductRepository productRepository) {
+        return args -> {
+            String seedSlug = "notebook-acer";
+            if (!productRepository.existsBySlug(seedSlug)) {
+                Product p = new Product();
+                p.setName("Notebook Acer Aspire 5");
+                p.setSlug(seedSlug);
+                p.setDescription("Notebook Acer Aspire 5, Intel i5, 8GB RAM, 256GB SSD");
+                p.setPrice(199900L);
+                p.setImages(null);
+                p.setCreatedAt(Instant.now());
+                p.setUpdatedAt(Instant.now());
+                productRepository.save(p);
+                System.out.println("✅ Produto seed criado: " + p.getName() + " (slug: " + seedSlug + ")");
+            } else {
+                System.out.println("ℹ️  Produto seed já existe (slug: " + seedSlug + ")");
             }
         };
     }

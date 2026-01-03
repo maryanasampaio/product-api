@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(name = "tb_usuario")
+
 public class User {
 
     @Id 
@@ -29,10 +30,15 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(length = 500)
+    @Column(name = "refresh_token", length = 500)
     private String refreshToken;
 
+    @Column(length = 50, nullable = false)
+    private String permission = "USER";
+
+    @Column(name = "created_at")
     private Instant createdAt = Instant.now();
+    @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
 }

@@ -1,8 +1,12 @@
 package com.example.product_api.controller;
 
-import com.example.product_api.dto.LoginDTO;
-import com.example.product_api.dto.RefreshTokenDTO;
+import com.example.product_api.dto.LoginDTO.LoginRequestDTO;
+import com.example.product_api.dto.LoginDTO.LoginResponseDTO;
+import com.example.product_api.dto.TokenDTO.RefreshTokenRequestDTO;
+import com.example.product_api.dto.TokenDTO.TokenResponseDTO;
 import com.example.product_api.service.AuthService;
+
+import jakarta.validation.Valid;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +37,7 @@ public class AuthController {
      * POST /auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginDTO) {
 
         // Valida credenciais
         boolean authenticated = authService.validateCredentials(
@@ -42,18 +46,19 @@ public class AuthController {
         );
 
         if (!authenticated) {
-            return ResponseEntity.status(401).body("Credenciais inválidas");
+            return ResponseEntity.status(401).build();
         }
 
         // Gera access token e refresh token
         String[] tokens = authService.generateTokens(loginDTO.getUsername());
         String accessToken = tokens[0];
+        String refreshToken = tokens[1];
 
-        // Monta resposta simples
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "Login efetuado com sucesso");
-        response.put("username", loginDTO.getUsername());
-        response.put("token", accessToken);
+        LoginResponseDTO response = new LoginResponseDTO(
+            "Login efetuado com sucesso",
+            loginDTO.getUsername(),
+            accessToken
+        );
 
         return ResponseEntity.ok(response);
     }
@@ -63,22 +68,21 @@ public class AuthController {
      * POST /auth/refresh
      */
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenDTO refreshTokenDTO) {
+    public ResponseEntity<TokenResponseDTO> refreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenDTO) {
         try {
             // Gera novo access token
             String newAccessToken = authService.refreshAccessToken(refreshTokenDTO.getRefreshToken());
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("accessToken", newAccessToken);
-            response.put("tokenType", "Bearer");
-            response.put("expiresIn", accessTokenExpiration / 1000);
+            TokenResponseDTO response = new TokenResponseDTO(
+                newAccessToken,
+                refreshTokenDTO.getRefreshToken(),
+                accessTokenExpiration / 1000
+            );
 
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.status(401).body(error);
+            return ResponseEntity.status(401).build();
         }
     }
 

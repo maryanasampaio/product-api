@@ -1,7 +1,4 @@
--- Migration: Create Product Table
--- Author: Maryana Sampaio
--- Date: 2025-12-06
--- Description: Initial migration to create the products table
+
 
 CREATE TABLE tb_produto (
     id BIGINT NOT NULL AUTO_INCREMENT,

@@ -11,38 +11,38 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.product_api.model.Product;
+import com.example.product_api.dto.ProductDTO.ProductRequestDTO;
+import com.example.product_api.dto.ProductDTO.ProductResponseDTO;
 import com.example.product_api.service.ProductService;
 
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+
 @RestController
+@AllArgsConstructor
 @RequestMapping("/produtos")
 
 public class ProductController {
 
     private final ProductService service;
-
-    public ProductController(ProductService productService){
-        this.service = productService;
-    }
-
+    
     @GetMapping
-    public List<Product> findAll(){
+    public List<ProductResponseDTO> findAll(){
         return service.findAll();
     }
 
     @GetMapping("/produto/{id}")
-    public Product findById(@PathVariable Long id){
+    public ProductResponseDTO findById(@PathVariable Long id){
         return service.findById(id);
     }
 
-    @PostMapping("/cadastrar")
-    public Product save(@RequestBody Product product){
+    @PostMapping
+    public ProductResponseDTO save(@Valid @RequestBody ProductRequestDTO product){
         return service.create(product);
     }
 
     @PutMapping("/atualizar/{id}")
-
-    public Product update(@PathVariable Long id, @RequestBody Product product){
+    public ProductResponseDTO update(@PathVariable Long id, @Valid @RequestBody ProductRequestDTO product){
         return service.update(id, product);
     }
 

@@ -25,15 +25,22 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false, unique = true)
+    private String slug;
+
     @Column(length = 1000)
     private String description;
 
     @Column(nullable = false)
     private Long price;
+
+    @Column(length = 2000)
+    private String images; 
     
-
-
+    
+    @Column(name = "created_at")
     private Instant createdAt = Instant.now();
+    @Column(name = "updated_at")
     private Instant updatedAt = Instant.now();
 
 }
