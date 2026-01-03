@@ -39,20 +39,23 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginDTO) {
 
-        // Valida credenciais
-        boolean authenticated = authService.validateCredentials(
+         boolean authenticated = authService.validateCredentials(
             loginDTO.getUsername(), 
             loginDTO.getPassword()
         );
 
         if (!authenticated) {
-            return ResponseEntity.status(401).build();
+            LoginResponseDTO error = new LoginResponseDTO(
+                "Credenciais inválidas",
+                loginDTO.getUsername(),
+                null
+            );
+            return ResponseEntity.status(401).body(error);
         }
 
-        // Gera access token e refresh token
+        // Gera access token e refresh token (refresh token é salvo no banco)
         String[] tokens = authService.generateTokens(loginDTO.getUsername());
         String accessToken = tokens[0];
-        String refreshToken = tokens[1];
 
         LoginResponseDTO response = new LoginResponseDTO(
             "Login efetuado com sucesso",
@@ -68,7 +71,7 @@ public class AuthController {
      * POST /auth/refresh
      */
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponseDTO> refreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenDTO) {
+    public ResponseEntity<TokenResponseDTO> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO refreshTokenDTO) {
         try {
             // Gera novo access token
             String newAccessToken = authService.refreshAccessToken(refreshTokenDTO.getRefreshToken());
