@@ -3,6 +3,7 @@ package com.example.product_api.exception;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.core.Ordered;
@@ -31,14 +32,7 @@ public class GlobalExceptionHandler {
                 .map(this::toErrorItem)
                 .collect(Collectors.toList());
 
-        Map<String, Object> body = Map.of(
-                "timestamp", OffsetDateTime.now().toString(),
-                "status", HttpStatus.BAD_REQUEST.value(),
-                "error", HttpStatus.BAD_REQUEST.getReasonPhrase(),
-        "message", "Erro de validação",
-                "path", request.getRequestURI(),
-                "errors", errors
-        );
+        Map<String, Object> body = jsonBody(HttpStatus.BAD_REQUEST, "Erro de validação", request.getRequestURI(), errors);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
@@ -51,15 +45,7 @@ public class GlobalExceptionHandler {
         .map(this::toErrorItem)
         .collect(Collectors.toList());
 
-    Map<String, Object> body = Map.of(
-        "timestamp", OffsetDateTime.now().toString(),
-        "status", HttpStatus.BAD_REQUEST.value(),
-        "error", HttpStatus.BAD_REQUEST.getReasonPhrase(),
-        "message", "Erro de validação",
-        "path", request.getRequestURI(),
-        "errors", errors
-    );
-
+    Map<String, Object> body = jsonBody(HttpStatus.BAD_REQUEST, "Erro de validação", request.getRequestURI(), errors);
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
@@ -70,44 +56,43 @@ public class GlobalExceptionHandler {
         .map(this::toErrorItem)
         .collect(Collectors.toList());
 
-    Map<String, Object> body = Map.of(
-        "timestamp", OffsetDateTime.now().toString(),
-        "status", HttpStatus.BAD_REQUEST.value(),
-        "error", HttpStatus.BAD_REQUEST.getReasonPhrase(),
-        "message", "Erro de validação",
-        "path", request.getRequestURI(),
-        "errors", errors
-    );
-
+    Map<String, Object> body = jsonBody(HttpStatus.BAD_REQUEST, "Erro de validação", request.getRequestURI(), errors);
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleRuntime(RuntimeException ex, HttpServletRequest request) {
-        Map<String, Object> body = Map.of(
-                "timestamp", OffsetDateTime.now().toString(),
-                "status", HttpStatus.BAD_REQUEST.value(),
-                "error", HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                "message", ex.getMessage(),
-                "path", request.getRequestURI()
-        );
+        Map<String, Object> body = jsonBody(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI(), null);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     private Map<String, Object> toErrorItem(FieldError fe) {
-        return Map.of(
-                "field", fe.getField(),
-                "message", fe.getDefaultMessage(),
-                "rejectedValue", fe.getRejectedValue()
-        );
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("field", fe.getField());
+        item.put("message", fe.getDefaultMessage());
+        item.put("rejectedValue", fe.getRejectedValue());
+        return item;
     }
 
     private Map<String, Object> toErrorItem(ConstraintViolation<?> cv) {
         String field = cv.getPropertyPath() != null ? cv.getPropertyPath().toString() : null;
-        return Map.of(
-                "field", field,
-                "message", cv.getMessage(),
-                "rejectedValue", cv.getInvalidValue()
-        );
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("field", field);
+        item.put("message", cv.getMessage());
+        item.put("rejectedValue", cv.getInvalidValue());
+        return item;
+    }
+
+    private Map<String, Object> jsonBody(HttpStatus status, String message, String path, List<Map<String, Object>> errors) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", OffsetDateTime.now().toString());
+        body.put("status", status.value());
+        body.put("error", status.getReasonPhrase());
+        body.put("message", message);
+        body.put("path", path);
+        if (errors != null) {
+            body.put("errors", errors);
+        }
+        return body;
     }
 }
