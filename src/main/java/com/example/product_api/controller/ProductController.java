@@ -1,6 +1,7 @@
 package com.example.product_api.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,9 +48,9 @@ public class ProductController {
     }
 
     @DeleteMapping("/deletar/{id}")
-    public String delete(@PathVariable Long id){
-    service.delete(id);
-    return "Produto deletado com sucesso!";
+    public Map<String, String> delete(@PathVariable Long id){
+        service.delete(id);
+        return Map.of("message", "Produto deletado com sucesso!");
     }
 
 }

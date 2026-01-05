@@ -71,7 +71,7 @@ public class AuthController {
      * POST /auth/refresh
      */
     @PostMapping("/refresh")
-    public ResponseEntity<TokenResponseDTO> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO refreshTokenDTO) {
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO refreshTokenDTO) {
         try {
             // Gera novo access token
             String newAccessToken = authService.refreshAccessToken(refreshTokenDTO.getRefreshToken());
@@ -85,7 +85,9 @@ public class AuthController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            return ResponseEntity.status(401).build();
+            return ResponseEntity.status(401).body(Map.of(
+                "message", "Refresh token inválido ou expirado"
+            ));
         }
     }
 
