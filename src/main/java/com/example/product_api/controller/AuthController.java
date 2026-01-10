@@ -48,6 +48,7 @@ public class AuthController {
             LoginResponseDTO error = new LoginResponseDTO(
                 "Credenciais inválidas",
                 loginDTO.getUsername(),
+                null,
                 null
             );
             return ResponseEntity.status(401).body(error);
@@ -57,10 +58,14 @@ public class AuthController {
         String[] tokens = authService.generateTokens(loginDTO.getUsername());
         String accessToken = tokens[0];
 
+        String permission = authService.findByUsername(loginDTO.getUsername())
+                .map(u -> u.getPermission())
+                .orElse("USER");
         LoginResponseDTO response = new LoginResponseDTO(
             "Login efetuado com sucesso",
             loginDTO.getUsername(),
-            accessToken
+            accessToken,
+            permission
         );
 
         return ResponseEntity.ok(response);

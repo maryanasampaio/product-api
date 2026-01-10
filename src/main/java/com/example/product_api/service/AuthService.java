@@ -41,7 +41,9 @@ public class AuthService {
      * Gera access token e refresh token
      */
     public String[] generateTokens(String username) {
-        String accessToken = jwtUtil.generateAccessToken(username);
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        String permission = userOptional.map(User::getPermission).orElse("USER");
+        String accessToken = jwtUtil.generateAccessToken(username, permission);
         String refreshToken = jwtUtil.generateRefreshToken(username);
         
         // Salva refresh token no banco
@@ -95,8 +97,8 @@ public class AuthService {
                 throw new RuntimeException("Refresh token expirado");
             }
             
-            // Gera novo access token
-            return jwtUtil.generateAccessToken(username);
+            // Gera novo access token com permission
+            return jwtUtil.generateAccessToken(username, user.getPermission());
             
         } catch (Exception e) {
             throw new RuntimeException("Erro ao renovar token: " + e.getMessage());

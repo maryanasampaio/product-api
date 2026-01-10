@@ -35,9 +35,10 @@ public class JwtUtil {
     }
 
     // Gera Access Token (curta duração)
-    public String generateAccessToken(String username) {
+    public String generateAccessToken(String username, String permission) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "access");
+        claims.put("permission", permission);
         return createToken(claims, username, accessTokenExpiration);
     }
 
@@ -75,6 +76,10 @@ public class JwtUtil {
     // Extrai tipo do token (access ou refresh)
     public String extractTokenType(String token) {
         return extractClaim(token, claims -> claims.get("type", String.class));
+    }
+
+    public String extractPermission(String token) {
+        return extractClaim(token, claims -> claims.get("permission", String.class));
     }
 
     // Extrai claim específico
