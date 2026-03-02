@@ -13,6 +13,7 @@ import com.example.product_api.repository.UserRepository;
 import com.example.product_api.repository.ProductRepository;
 
 import java.time.Instant;
+import java.util.Optional;
 
 /**
  * Data Seeder - Similar ao Seeder do Laravel
@@ -32,6 +33,7 @@ public class DataSeeder {
                 User admin = new User();
                 admin.setUsername("admin");
                 admin.setPassword(encoder.encode("123456")); // Senha criptografada
+                admin.setPermission("ADMIN");
                 admin.setCreatedAt(Instant.now());
                 admin.setUpdatedAt(Instant.now());
                 
@@ -41,6 +43,14 @@ public class DataSeeder {
                 System.out.println("   Username: admin");
                 System.out.println("   Password: 123456");
             } else {
+                Optional<User> adminUser = userRepository.findByUsername("admin");
+                if (adminUser.isPresent() && !"ADMIN".equalsIgnoreCase(adminUser.get().getPermission())) {
+                    User existing = adminUser.get();
+                    existing.setPermission("ADMIN");
+                    existing.setUpdatedAt(Instant.now());
+                    userRepository.save(existing);
+                    System.out.println("✅ Permissão do usuário admin atualizada para ADMIN");
+                }
                 System.out.println("ℹ️  Usuário admin já existe no banco de dados");
             }
         };

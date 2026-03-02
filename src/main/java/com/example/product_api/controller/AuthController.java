@@ -26,6 +26,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
 
+    private static final String ADMIN_USERNAME = "admin";
+    private static final String ADMIN_PERMISSION = "ADMIN";
+
     @Autowired
     private AuthService authService;
 
@@ -40,30 +43,41 @@ public class AuthController {
     public ResponseEntity<LoginResponseDTO> login(@Valid @RequestBody LoginRequestDTO loginDTO) {
 
          boolean authenticated = authService.validateCredentials(
-            loginDTO.getUsername(), 
+            ADMIN_USERNAME,
             loginDTO.getPassword()
         );
 
         if (!authenticated) {
             LoginResponseDTO error = new LoginResponseDTO(
                 "Credenciais inválidas",
-                loginDTO.getUsername(),
+                ADMIN_USERNAME,
                 null,
                 null
             );
             return ResponseEntity.status(401).body(error);
         }
 
-        // Gera access token e refresh token (refresh token é salvo no banco)
-        String[] tokens = authService.generateTokens(loginDTO.getUsername());
-        String accessToken = tokens[0];
-
-        String permission = authService.findByUsername(loginDTO.getUsername())
+        String permission = authService.findByUsername(ADMIN_USERNAME)
                 .map(u -> u.getPermission())
                 .orElse("USER");
+
+        if (!ADMIN_PERMISSION.equalsIgnoreCase(permission)) {
+            LoginResponseDTO error = new LoginResponseDTO(
+                "Acesso permitido apenas para administrador",
+                ADMIN_USERNAME,
+                null,
+                permission
+            );
+            return ResponseEntity.status(401).body(error);
+        }
+
+        // Gera access token e refresh token (refresh token é salvo no banco)
+        String[] tokens = authService.generateTokens(ADMIN_USERNAME);
+        String accessToken = tokens[0];
+
         LoginResponseDTO response = new LoginResponseDTO(
             "Login efetuado com sucesso",
-            loginDTO.getUsername(),
+            ADMIN_USERNAME,
             accessToken,
             permission
         );

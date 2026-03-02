@@ -15,8 +15,7 @@ import java.util.function.Function;
 
 /**
  * Utilitário para geração e validação de tokens JWT
- * Access Token: 15 minutos
- * Refresh Token: 7 dias
+ * Tokens permanentes (sem expiração)
  */
 @Component
 public class JwtUtil {
@@ -39,28 +38,31 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "access");
         claims.put("permission", permission);
-        return createToken(claims, username, accessTokenExpiration);
+        return createToken(claims, username, null);
     }
 
     // Gera Refresh Token (longa duração)
     public String generateRefreshToken(String username) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "refresh");
-        return createToken(claims, username, refreshTokenExpiration);
+        return createToken(claims, username, null);
     }
 
     // Cria o token JWT
     private String createToken(Map<String, Object> claims, String subject, Long expiration) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expiration);
-
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .claims(claims)
                 .subject(subject)
                 .issuedAt(now)
-                .expiration(expiryDate)
-                .signWith(getSigningKey())
-                .compact();
+                .signWith(getSigningKey());
+
+        if (expiration != null && expiration > 0) {
+            Date expiryDate = new Date(now.getTime() + expiration);
+            builder.expiration(expiryDate);
+        }
+
+        return builder.compact();
     }
 
     // Extrai username do token
@@ -99,7 +101,11 @@ public class JwtUtil {
 
     // Verifica se o token expirou
     private Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        Date expiration = extractExpiration(token);
+        if (expiration == null) {
+            return false;
+        }
+        return expiration.before(new Date());
     }
 
     // Valida o token
