@@ -8,6 +8,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.example.product_api.model.User;
 import com.example.product_api.model.Product;
+import com.example.product_api.model.ProductDimensions;
 import com.example.product_api.repository.UserRepository;
 import com.example.product_api.repository.ProductRepository;
 
@@ -55,7 +56,18 @@ public class DataSeeder {
                 p.setSlug(seedSlug);
                 p.setDescription("Notebook Acer Aspire 5, Intel i5, 8GB RAM, 256GB SSD");
                 p.setPrice(199900L);
+                p.setCostPrice(160000L);
+                p.setCondition("novo");
+                p.setCategory("Eletrodoméstico");
                 p.setImages(null);
+                p.setStock(5);
+                p.setDimensions(new ProductDimensions(36, 2, 24, "cm"));
+                p.setMaterial("Plástico e metal");
+                p.setColor("Preto");
+                p.setBrand("Acer");
+                p.setWarranty("90 dias");
+                p.setFeatured(true);
+                p.setSoldDate(null);
                 p.setCreatedAt(Instant.now());
                 p.setUpdatedAt(Instant.now());
                 productRepository.save(p);

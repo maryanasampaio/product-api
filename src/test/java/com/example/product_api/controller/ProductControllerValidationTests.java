@@ -1,8 +1,8 @@
 package com.example.product_api.controller;
 
-import com.example.product_api.dto.ProductDTO.ProductRequestDTO;
 import com.example.product_api.exception.GlobalExceptionHandler;
 import com.example.product_api.service.ProductService;
+import com.example.product_api.util.JwtUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -28,16 +28,28 @@ class ProductControllerValidationTests {
     @MockBean
     private ProductService productService;
 
+    @MockBean
+    private JwtUtil jwtUtil;
+
     @Test
     void shouldReturnValidationErrorWhenNameIsBlank() throws Exception {
+        when(jwtUtil.extractUsername("valid-token")).thenReturn("admin");
+        when(jwtUtil.isAccessToken("valid-token")).thenReturn(true);
+        when(jwtUtil.validateToken("valid-token", "admin")).thenReturn(true);
+
         String body = "{\n" +
-                "  \"name\": \"\",\n" +
-                "  \"description\": \"desc\",\n" +
+                "  \"name\": null,\n" +
+            "  \"description\": \"descrição válida com mais de 10\",\n" +
                 "  \"price\": 1000,\n" +
-                "  \"images\": \"img1.jpg\"\n" +
+            "  \"condition\": \"novo\",\n" +
+            "  \"category\": \"Sofá\",\n" +
+            "  \"images\": [\"img1.jpg\"],\n" +
+            "  \"stock\": 1,\n" +
+            "  \"featured\": false\n" +
                 "}";
 
-        mockMvc.perform(post("/produtos")
+        mockMvc.perform(post("/api/products")
+                .header("Authorization", "Bearer valid-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isBadRequest())

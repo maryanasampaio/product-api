@@ -24,6 +24,22 @@ import jakarta.validation.ConstraintViolationException;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(NotFoundException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", ex.getMessage());
+        body.put("statusCode", HttpStatus.NOT_FOUND.value());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("error", ex.getMessage());
+        body.put("statusCode", HttpStatus.CONFLICT.value());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpServletRequest request) {
         List<Map<String, Object>> errors = ex.getBindingResult()
