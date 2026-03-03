@@ -78,6 +78,9 @@ public class Product {
     @Column(name = "sold_date")
     private Instant soldDate;
 
+    @Column(nullable = false)
+    private Integer disponivel;
+
     @Column(name = "created_at")
     private Instant createdAt;
 
@@ -94,6 +97,9 @@ public class Product {
         }
         if (this.featured == null) {
             this.featured = Boolean.FALSE;
+        }
+        if (this.disponivel == null) {
+            this.disponivel = 1;
         }
     }
 

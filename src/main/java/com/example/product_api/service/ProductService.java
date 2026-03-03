@@ -4,12 +4,15 @@ import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.product_api.dto.ProductDTO.ProductRequestDTO;
 import com.example.product_api.dto.ProductDTO.ProductResponseDTO;
+import com.example.product_api.dto.ProductDTO.AvailableProductRequestDTO;
 import com.example.product_api.dto.ProductDTO.SoldProductRequestDTO;
 import com.example.product_api.exception.ConflictException;
 import com.example.product_api.exception.NotFoundException;
@@ -61,6 +64,11 @@ public class ProductService {
         return mapper.toResponse(p);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "dashboard", allEntries = true),
+        @CacheEvict(value = "monthlyEvolution", allEntries = true),
+        @CacheEvict(value = "products", allEntries = true)
+    })
     public ProductResponseDTO create(ProductRequestDTO dto){
         String slug = SlugUtil.slugify(dto.getName());
 
@@ -72,6 +80,7 @@ public class ProductService {
         mapper.updateEntityFromDto(dto, p);
         p.setSlug(slug);
         p.setSoldDate(null);
+        p.setDisponivel(1);
 
         Product saved = repository.save(p);
         return mapper.toResponse(saved);
@@ -102,6 +111,11 @@ public class ProductService {
         return id;
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "dashboard", allEntries = true),
+        @CacheEvict(value = "monthlyEvolution", allEntries = true),
+        @CacheEvict(value = "products", allEntries = true)
+    })
     public ProductResponseDTO markAsSold(Long id, SoldProductRequestDTO dto) {
         Product existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Produto não encontrado"));
@@ -109,6 +123,28 @@ public class ProductService {
         Instant soldAt = dto != null && dto.getSoldDate() != null ? dto.getSoldDate() : Instant.now();
         existing.setSoldDate(soldAt);
         existing.setStock(0);
+        existing.setDisponivel(0);
+
+        Product saved = repository.save(existing);
+        return mapper.toResponse(saved);
+    }
+
+    @Caching(evict = {
+        @CacheEvict(value = "dashboard", allEntries = true),
+        @CacheEvict(value = "monthlyEvolution", allEntries = true),
+        @CacheEvict(value = "products", allEntries = true)
+    })
+    public ProductResponseDTO markAsAvailable(Long id, AvailableProductRequestDTO dto) {
+        Product existing = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Produto não encontrado"));
+
+        int stock = dto != null && dto.getStock() != null
+                ? dto.getStock()
+                : (existing.getStock() != null && existing.getStock() > 0 ? existing.getStock() : 1);
+
+        existing.setSoldDate(null);
+        existing.setDisponivel(1);
+        existing.setStock(stock);
 
         Product saved = repository.save(existing);
         return mapper.toResponse(saved);

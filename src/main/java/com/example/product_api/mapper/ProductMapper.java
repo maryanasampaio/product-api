@@ -27,6 +27,7 @@ public class ProductMapper {
         dto.setWarranty(product.getWarranty());
         dto.setFeatured(product.getFeatured());
         dto.setSoldDate(product.getSoldDate());
+        dto.setDisponivel(product.getDisponivel());
         dto.setCreatedAt(product.getCreatedAt());
         dto.setUpdatedAt(product.getUpdatedAt());
         return dto;

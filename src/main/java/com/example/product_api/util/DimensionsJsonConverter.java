@@ -30,7 +30,7 @@ public class DimensionsJsonConverter implements AttributeConverter<ProductDimens
         try {
             return MAPPER.readValue(dbData, ProductDimensions.class);
         } catch (Exception e) {
-            throw new IllegalArgumentException("Erro ao desserializar dimensions", e);
+            return null;
         }
     }
 }

@@ -32,6 +32,7 @@ public class ProductResponseDTO {
     private String warranty;
     private Boolean featured;
     private Instant soldDate;
+    private Integer disponivel;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -54,6 +55,7 @@ public class ProductResponseDTO {
         dto.setWarranty(p.getWarranty());
         dto.setFeatured(p.getFeatured());
         dto.setSoldDate(p.getSoldDate());
+        dto.setDisponivel(p.getDisponivel());
         dto.setCreatedAt(p.getCreatedAt());
         dto.setUpdatedAt(p.getUpdatedAt());
         return dto;

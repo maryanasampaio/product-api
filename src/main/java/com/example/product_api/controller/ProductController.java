@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.product_api.dto.ProductDTO.ProductRequestDTO;
 import com.example.product_api.dto.ProductDTO.ProductResponseDTO;
+import com.example.product_api.dto.ProductDTO.AvailableProductRequestDTO;
 import com.example.product_api.dto.ProductDTO.SoldProductRequestDTO;
 import com.example.product_api.service.ProductService;
 
@@ -64,6 +65,11 @@ public class ProductController {
     @PostMapping("/{id}/sold")
     public ProductResponseDTO markAsSold(@PathVariable Long id, @RequestBody(required = false) SoldProductRequestDTO soldRequest) {
         return service.markAsSold(id, soldRequest);
+    }
+
+    @PostMapping("/{id}/available")
+    public ProductResponseDTO markAsAvailable(@PathVariable Long id, @RequestBody(required = false) AvailableProductRequestDTO availableRequest) {
+        return service.markAsAvailable(id, availableRequest);
     }
 
 }

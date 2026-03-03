@@ -123,6 +123,9 @@ public class JwtUtil {
     // Valida se é um access token
     public Boolean isAccessToken(String token) {
         String type = extractTokenType(token);
+        if (type == null || type.isBlank()) {
+            return true;
+        }
         return "access".equals(type);
     }
 }

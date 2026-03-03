@@ -19,6 +19,14 @@ public class SchemaPatchConfig {
             } catch (Exception ex) {
                 System.out.println("ℹ️  Schema patch ignorado (tb_produto/images indisponível no contexto atual)");
             }
+
+            try {
+                jdbcTemplate.execute("ALTER TABLE tb_produto ADD COLUMN IF NOT EXISTS disponivel TINYINT NOT NULL DEFAULT 1");
+                jdbcTemplate.execute("UPDATE tb_produto SET disponivel = CASE WHEN sold_date IS NULL THEN 1 ELSE 0 END WHERE disponivel IS NULL");
+                System.out.println("✅ Schema patch aplicado: tb_produto.disponivel (default 1)");
+            } catch (Exception ex) {
+                System.out.println("ℹ️  Schema patch ignorado (tb_produto/disponivel indisponível no contexto atual)");
+            }
         };
     }
 }

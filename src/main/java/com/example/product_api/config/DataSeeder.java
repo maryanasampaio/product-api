@@ -78,6 +78,7 @@ public class DataSeeder {
                 p.setWarranty("90 dias");
                 p.setFeatured(true);
                 p.setSoldDate(null);
+                p.setDisponivel(1);
                 p.setCreatedAt(Instant.now());
                 p.setUpdatedAt(Instant.now());
                 productRepository.save(p);

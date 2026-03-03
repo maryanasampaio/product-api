@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Converter
 public class StringListJsonConverter implements AttributeConverter<List<String>, String> {
@@ -32,7 +34,15 @@ public class StringListJsonConverter implements AttributeConverter<List<String>,
         try {
             return MAPPER.readValue(dbData, new TypeReference<List<String>>() {});
         } catch (Exception e) {
-            throw new IllegalArgumentException("Erro ao desserializar imagens", e);
+            String value = dbData.trim();
+            if (value.contains(",")) {
+                List<String> items = Arrays.stream(value.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isBlank())
+                        .collect(Collectors.toList());
+                return items.isEmpty() ? null : items;
+            }
+            return List.of(value);
         }
     }
 }
